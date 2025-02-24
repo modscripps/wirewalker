@@ -58,7 +58,7 @@ if WWmeta.salspiking.yn==1
             RBRprofiles{n}.SP_corr = SP_Corr;
             RBRprofiles{n}.SP_sm = SP_sm;
             RBRprofiles{n}.SP = SP;
-            RBRprofiles{n}.SA_corr = gsw_SA_from_SP(RBRprofiles{n}.SP_corr,0,WWmeta.lon,WWmeta.lat);
+            RBRprofiles{n}.SA_corr = gsw_SA_from_SP(RBRprofiles{n}.SP_corr,RBRprofiles{n}.P,WWmeta.lon,WWmeta.lat);
             RBRprofiles{n}.rho_corr = gsw_rho(RBRprofiles{n}.SA_corr,gsw_CT_from_t(RBRprofiles{n}.SA_corr,RBRprofiles{n}.T,0),0);
         else
             RBRprofiles{n}.SP_corr = nan(size(RBRprofiles{n}.S));

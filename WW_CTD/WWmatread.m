@@ -40,9 +40,9 @@ end
 
 out.time=(RSKread.data.tstamp);
 out.P(out.P<0)=0;
-out.S   = gsw_SP_from_C(out.C,out.T,0);
-SA      = gsw_SA_from_SP(out.S,0,WWmeta.lon,WWmeta.lat);  % lat/lon are subject to change
-CT      = gsw_CT_from_t(SA,out.T,0);
+out.S   = gsw_SP_from_C(out.C,out.T,out.P);
+SA      = gsw_SA_from_SP(out.S,out.P,WWmeta.lon,WWmeta.lat);  % lat/lon are subject to change
+CT      = gsw_CT_from_t(SA,out.T,out.P);
 out.rho = gsw_rho(SA,CT,0);
 out.sig0 = out.rho-1000;
 
