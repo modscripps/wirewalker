@@ -38,6 +38,10 @@ for c=1:size(RSKread.data.values,2) %
     end  
 end
 
+if WWmeta.LineNoiseSquasher == 1
+    out.T = SquashLineNoise(out.T,1000);
+end
+
 out.time=(RSKread.data.tstamp);
 out.P(out.P<0)=0;
 out.S   = gsw_SP_from_C(out.C,out.T,out.P);

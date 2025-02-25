@@ -5,16 +5,18 @@
 % - % - % - % - % - % - % - % - % - % - % - % - % - % - %- %
 %% convert .rsk file into matlab file
 clear all
-WWmeta.rbrpath = '/Users/Devon/Documents/GradSchool/DTS/Wirewalker/RBR/raw/';
+WWmeta.rbrpath = '/Users/Devon/Documents/GradSchool/ASTRAL/RBR_Raw/DBASIS/Lower/';
 WWmeta.rbrfile=dir(fullfile(WWmeta.rbrpath,'*.rsk'));
-WWmeta.name_rbr = 'TLC23_dye_ThorpeScale';
-WWmeta.matpath = '/Users/Devon/Documents/GradSchool/DTS/Wirewalker/RBR/mat/';  % path for converted mat file
-WWmeta.propath = '/Users/Devon/Documents/GradSchool/DTS/Wirewalker/RBR/profile/';  % path for saving upcast profiles
-WWmeta.gridpath = '/Users/Devon/Documents/GradSchool/DTS/Wirewalker/RBR/grid/';  % path for the gridded product
-WWmeta.lat = 33;
-WWmeta.lon = -117.5;
+WWmeta.name_rbr = 'ASTRAL_DBASIS_Lower_2';
+WWmeta.matpath = '/Users/Devon/Documents/GradSchool/ASTRAL/WW_Processed/DBASIS/Lower/RBR/mat/';  % path for converted mat file
+WWmeta.propath = '/Users/Devon/Documents/GradSchool/ASTRAL/WW_Processed/DBASIS/Lower/RBR/profile/';  % path for saving upcast profiles
+WWmeta.gridpath = '/Users/Devon/Documents/GradSchool/ASTRAL/WW_Processed/DBASIS/Lower/RBR/grid/';  % path for the gridded product
+WWmeta.rsktoolspath = '/Users/Devon/Documents/MATLAB/rbr-rsktoolsv353/';
+addpath(genpath(WWmeta.rsktoolspath))
+WWmeta.lat = 12;
+WWmeta.lon = 85;
 
-WWmeta.thorpescales.yn = 1; % Do thorpe scale analysis (1=yes, 0=no);
+WWmeta.thorpescales.yn = 0; % Do thorpe scale analysis (1=yes, 0=no);
 
 WWmeta.salspiking.yn = 1;  % Do salinity de-spiking? (1=yes, 0=no);
 WWmeta.salspiking.win_len = 80; % window size for sal spiking calculation (I set to ~10s)
@@ -22,6 +24,8 @@ WWmeta.salspiking.Fs = 8; % CTD sampling frequency
 WWmeta.salspiking.iPlot = 1; % Plot sal de-spiking stuff
 WWmeta.salspiking.poly_order = 20; % Polynomial order for sal de-spiking fits
 WWmeta.salspiking.dTorT = 1;  % 0 = use derivite of T and C, 1 = use raw data. Sould be equivelent?
+
+WWmeta.LineNoiseSquasher = 1; % To fix a specific line noise issue in the ASTRAL DBASIS lower temperature record.
 
 WW_rskread(WWmeta);
 
