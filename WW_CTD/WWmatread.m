@@ -30,7 +30,23 @@ for c=1:size(RSKread.data.values,2) %
         case 'Irradiance3'
             out.irr3=RSKread.data.values(:,c);
         case 'Temperature1'
-            out.T=RSKread.data.values(:,c); 
+            out.T=RSKread.data.values(:,c);
+        case 'Dissolved O concentration'
+            out.O2=RSKread.data.values(:,c);
+        case 'Chlorophyll-a'
+            out.chla=RSKread.data.values(:,c); 
+        case 'FDOM'
+            out.fdom=RSKread.data.values(:,c);
+        case 'Sea Pressure'
+            out.sea_pressure=RSKread.data.values(:,c);
+        case 'Depth'
+            out.depth=RSKread.data.values(:,c);
+        case 'Speed of sound'
+            out.sound_speed=RSKread.data.values(:,c);
+        case 'Specific conductivity'
+            out.specific_conductivity=RSKread.data.values(:,c);
+        case 'Dissolved O saturation'
+            out.O2_sat=RSKread.data.values(:,c); 
         otherwise
             i=i+1;
             eval(sprintf('out.v%i=RSKread.data.values(:,c)',i));
