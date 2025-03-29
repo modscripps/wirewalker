@@ -12,7 +12,18 @@ for c=1:size(RSKread.data.values,2) %
         case 'Pressure'
             out.P=RSKread.data.values(:,c)-10.13;  % pressure offset
         case 'Temperature'
-            out.T=RSKread.data.values(:,c);
+            if ~isfield(out,'T')
+                out.T=RSKread.data.values(:,c);
+            elseif isfield(out,'T')
+                for n = 1:10
+                    if isfield(out,['T' num2str(n)])
+                        continue
+                    else
+                        eval(['out.T' num2str(n) '=RSKread.data.values(:,c);']);
+                        break
+                    end
+                end
+            end
         case 'Conductivity'
             out.C=RSKread.data.values(:,c);
         case 'Backscatter'
@@ -30,7 +41,18 @@ for c=1:size(RSKread.data.values,2) %
         case 'Irradiance3'
             out.irr3=RSKread.data.values(:,c);
         case 'Temperature1'
-            out.T=RSKread.data.values(:,c);
+            if ~isfield(out,'T')
+                out.T=RSKread.data.values(:,c);
+            elseif isfield(out,'T')
+                for n = 1:10
+                    if isfield(out,['T' num2str(n)])
+                        continue
+                    else
+                        eval(['out.T' num2str(n) '=RSKread.data.values(:,c);']);
+                        break
+                    end
+                end
+            end
         case 'Dissolved O concentration'
             out.O2=RSKread.data.values(:,c);
         case 'Chlorophyll-a'
@@ -46,7 +68,20 @@ for c=1:size(RSKread.data.values,2) %
         case 'Specific conductivity'
             out.specific_conductivity=RSKread.data.values(:,c);
         case 'Dissolved O saturation'
-            out.O2_sat=RSKread.data.values(:,c); 
+            out.O2_sat=RSKread.data.values(:,c);
+        case 'Irradiance'
+            if ~isfield(out,'irr')
+                out.irr=RSKread.data.values(:,c);
+            elseif isfield(out,'irr')
+                for n = 1:10
+                    if isfield(out,['irr' num2str(n)])
+                        continue
+                    else
+                        eval(['out.irr' num2str(n) '=RSKread.data.values(:,c);']);
+                        break
+                    end
+                end
+            end
         otherwise
             i=i+1;
             eval(sprintf('out.v%i=RSKread.data.values(:,c)',i));
