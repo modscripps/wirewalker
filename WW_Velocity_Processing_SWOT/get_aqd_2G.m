@@ -5,7 +5,13 @@ function [up,down,dataup,datadown] = get_aqd_2G(data,thhold)
 % 
 % rename variable to make it easy
 pdata=double(data.Burst_Pressure);
-tdata=data.Burst_Time;
+if isfield(data,'Burst_Time')
+    tdata=data.Burst_Time;
+elseif isfield(data,'Burst_MatlabTimeStamp')
+    tdata=data.Burst_MatlabTimeStamp;
+else
+    disp("Error: Could not find a time variable")
+end
 dtdata = [0;diff(tdata)];
 
 % buid a filter 
@@ -75,7 +81,14 @@ xlim([tdata(1) tdata(end)])
 % Added by Devon Northcott, 7/24, Cluge to fix situations where HR mode
 % data has one more or fewer data points than non-HR data.
 fields=fieldnames(data);
-if sum(strcmp(fields,'IBurstHR_Time'))==1 & length(data.Burst_Time)~=length(data.IBurstHR_Time)
+if (sum(strcmp(fields,'IBurstHR_Time'))==1 | sum(strcmp(fields,'IBurstHR_MatlabTimeStamp'))==1)
+    if isfield(data,'IBurstHR_Time')
+        HRtdata=data.IBurstHR_Time;
+    elseif isfield(data,'IBurstHR_MatlabTimeStamp')
+        HRtdata=data.IBurstHR_MatlabTimeStamp;
+    else
+        disp("Error: Could not find a time variable")
+    end    
     HRfields_cell = strfind(fields,'IBurstHR');
     HRfields_bool = zeros(size(HRfields_cell));
     for i = 1:length(HRfields_cell)
@@ -83,7 +96,7 @@ if sum(strcmp(fields,'IBurstHR_Time'))==1 & length(data.Burst_Time)~=length(data
     end
     HRfields = fields;
     HRfields(~HRfields_bool)=[];
-    len_diff = length(data.Burst_Time)-length(data.IBurstHR_Time);
+    len_diff = length(tdata)-length(HRtdata);
     if len_diff<0
         for f=1:length(HRfields)
             wh_field=HRfields{f};

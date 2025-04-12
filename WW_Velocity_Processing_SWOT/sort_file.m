@@ -10,7 +10,13 @@ name = [];  % name of all files, help with future loading
 for i = 1:length(dd0)
     filename = dd0(i).name;
     load([WWmeta.aqdpath,filename]);
-    time = [time;Data.Burst_Time(1)];
+    if isfield(Data,'Burst_Time')
+        time = [time;Data.Burst_Time(1)];
+    elseif isfield(Data,'Burst_MatlabTimeStamp')
+        time = [time;Data.Burst_MatlabTimeStamp(1)];
+    else
+        disp("Error: Could not find a time variable")
+    end
     name{i} = dd0(i).name; 
 end
 

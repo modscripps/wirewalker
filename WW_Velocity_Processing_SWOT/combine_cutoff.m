@@ -19,8 +19,20 @@ aqd2 = load([WWmeta.propath_rearrange filename_2]);
 
 pres_1 = aqd1.AQDprofiles_up{end}.Burst_Pressure;
 pres_2 = aqd2.AQDprofiles_up{1}.Burst_Pressure;
-time_1 = aqd1.AQDprofiles_up{end}.Burst_Time;
-time_2 = aqd2.AQDprofiles_up{1}.Burst_Time;
+if isfield(aqd1.AQDprofiles_up{end},'Burst_Time')
+    time_1 = aqd1.AQDprofiles_up{end}.Burst_Time;
+elseif isfield(aqd1.AQDprofiles_up{end},'Burst_MatlabTimeStamp')
+    time_1 = aqd1.AQDprofiles_up{end}.Burst_MatlabTimeStamp;
+else
+    disp("Error: Could not find a time variable")
+end
+if isfield(aqd1.AQDprofiles_up{1},'Burst_Time')
+    time_2 = aqd1.AQDprofiles_up{1}.Burst_Time;
+elseif isfield(aqd1.AQDprofiles_up{1},'Burst_MatlabTimeStamp')
+    time_2 = aqd1.AQDprofiles_up{1}.Burst_MatlabTimeStamp;
+else
+    disp("Error: Could not find a time variable")
+end
 
 if abs(pres_1(end)-pres_2(1))<10 & abs(time_1(end)-time_2(1))*86400<20% this means profile can be combined together
     disp(['start combination upcast; pres1:',num2str(pres_1(end)),', pres2:',num2str(pres_2(1))...
@@ -64,8 +76,20 @@ aqd2 = load([WWmeta.propath_rearrange filename_2]);
 
 pres_1 = aqd1.AQDprofiles_down{end}.Burst_Pressure;
 pres_2 = aqd2.AQDprofiles_down{1}.Burst_Pressure;
-time_1 = aqd1.AQDprofiles_down{end}.Burst_Time;
-time_2 = aqd2.AQDprofiles_down{1}.Burst_Time;
+if isfield(aqd1.AQDprofiles_up{end},'Burst_Time')
+    time_1 = aqd1.AQDprofiles_up{end}.Burst_Time;
+elseif isfield(aqd1.AQDprofiles_up{end},'Burst_MatlabTimeStamp')
+    time_1 = aqd1.AQDprofiles_up{end}.Burst_MatlabTimeStamp;
+else
+    disp("Error: Could not find a time variable")
+end
+if isfield(aqd1.AQDprofiles_up{1},'Burst_Time')
+    time_2 = aqd1.AQDprofiles_up{1}.Burst_Time;
+elseif isfield(aqd1.AQDprofiles_up{1},'Burst_MatlabTimeStamp')
+    time_2 = aqd1.AQDprofiles_up{1}.Burst_MatlabTimeStamp;
+else
+    disp("Error: Could not find a time variable")
+end
 
 
 if abs(pres_1(end)-pres_2(1))<10 & abs(time_1(end)-time_2(1))*86400<20% this means profile can be combined together

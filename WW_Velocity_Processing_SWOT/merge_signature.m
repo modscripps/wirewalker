@@ -10,7 +10,13 @@ cell_Data=struct([]);
 for l=1:num
     filename = WWmeta.sortedname{q+l-1};
     load([WWmeta.aqdpath filename]);
-    beg(l)=Data.Burst_Time(1);
+    if isfield(Data,'Burst_Time')
+        beg(l) = Data.Burst_Time(1);
+    elseif isfield(Data,'Burst_MatlabTimeStamp')
+        beg(l) = Data.Burst_MatlabTimeStamp(1);
+    else
+        disp("Error: Could not find a time variable")
+    end
     cell_Data{l}=Data;
     cell_Config{l}=Config;
 end

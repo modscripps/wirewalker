@@ -16,7 +16,14 @@ ind_prof=find(dup>1);
 ind_prof = [1;ind_prof;length(up)]; % change by BZheng on Feb 15, 2020, orgignal: without this command
 AQDprofiles_up=struct([]);
 fields=fieldnames(dataup);
-tdata=dataup.Burst_Time;
+if isfield(dataup,'Burst_Time')
+    tdata=dataup.Burst_Time;
+elseif isfield(dataup,'Burst_MatlabTimeStamp')
+    tdata=dataup.Burst_MatlabTimeStamp;
+else
+    disp("Error: Could not find a time variable")
+end
+
 for i=1:length(ind_prof)-1   
     for f=1:length(fields)
         wh_field=fields{f};
@@ -42,7 +49,14 @@ ind_prof=find(ddown>1);  % find gap, which is an indication of profile
 ind_prof = [1;ind_prof;length(down)]; % change by BZheng on Feb 15, 2020, orgignal: without this command
 AQDprofiles_down=struct([]);
 fields=fieldnames(datadown);
-tdata=datadown.Burst_Time;
+if isfield(datadown,'Burst_Time')
+    tdata=datadown.Burst_Time;
+elseif isfield(datadown,'Burst_MatlabTimeStamp')
+    tdata=datadown.Burst_MatlabTimeStamp;
+else
+    disp("Error: Could not find a time variable")
+end
+
 for i=1:length(ind_prof)-1   
     for f=1:length(fields)
         wh_field=fields{f};

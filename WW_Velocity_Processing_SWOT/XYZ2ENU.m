@@ -1,4 +1,4 @@
-function ENU = XYZ2ENU(velx, vely, velz, P, R, H , varargin)
+function ENU = XYZ2ENU(velx, vely, velz, P, R, H,varargin)
 % convert xyz velocity to ENU velocity for Signature 1000
 % velx/y/z - xyz velocity in form [profile# * cell#]
 % R - Roll angle (Rotate around X) in degree
@@ -27,18 +27,14 @@ for j = 1:length(P)
     % Make resulting transformation matrix
     R = H*P;
     
-%     R = [cos(hh(j))*cos(pp(j)) cos(hh(j))*sin(pp(j))*sin(rr(j))-sin(hh(j))*cos(rr(j)) cos(hh(j))*sin(pp(j))*cos(rr(j))+sin(hh(j))*sin(rr(j));...
-%         sin(hh(j))*cos(pp(j))  sin(hh(j))*sin(pp(j))*sin(rr(j))+cos(hh(j))*cos(rr(j)) sin(hh(j))*sin(pp(j))*cos(hh(j))-cos(hh(j))*sin(rr(j));...
-%         -sin(pp(j))        cos(pp(j))*sin(rr(j))                      cos(pp(j))*cos(rr(j))];
-
     % calculate ENU
-    XYZ = [velx(j,:); vely(j,:); velz(j,:)];
-    velenu = R * XYZ;      % XYZ velocity to ENU
-    
-    if strcmp(varargin{1},'reverse')
+    if isempty(varargin)
+        XYZ = [velx(j,:); vely(j,:); velz(j,:)];
+        velenu = R * XYZ;      % XYZ velocity to ENU
+    elseif strcmp(varargin{1},'reverse')
          % calculate ENU
         XYZ = [velx(j,:); vely(j,:); velz(j,:)];
-        velenu = transpose(XYZ) * R;      % XYZ velocity to ENU
+        velenu = transpose(transpose(XYZ) * R);      % XYZ velocity to ENU
     end
     
     ENU(j,1,:) = velenu(1,:);  % east-west

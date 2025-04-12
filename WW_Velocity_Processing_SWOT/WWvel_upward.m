@@ -38,28 +38,29 @@ out{8} = [];  % Nav and temp
 out{9} = [];  % Normalized amplitude
 out{10} = [];  % Amplitude variance
 
-dd0 = dir([WWmeta.aqdpath '*.mat']);
-if (splitnum-1)*splitfiles+splitfiles<length(dd0)
-    inds = (splitnum-1)*splitfiles+1:num:(splitnum-1)*splitfiles+splitfiles;  % starting index for each group
+dd0 = WWmeta.dd0;
+if ((splitnum-1)*splitfiles+splitfiles)<ceil(length(WWmeta.dd0)/num)
+    inds = (num*((splitnum-1)*splitfiles)+1):num:num*((splitnum-1)*splitfiles+splitfiles);  % starting index for each group
 else
-    inds = (splitnum-1)*splitfiles+1:num:length(dd0);  % starting index for each group
+    inds = (num*((splitnum-1)*splitfiles)+1):num:num*(ceil(length(WWmeta.dd0)/num));  % starting index for each group
 end
 
 inde = inds(2:end)-1;
 
-if (splitnum-1)*splitfiles+splitfiles<length(dd0)
-    inde = [inde (splitnum-1)*splitfiles+splitfiles]; % ending index for each group
+if (splitnum-1)*splitfiles+splitfiles<ceil(length(WWmeta.dd0)/num)
+    inde = [inde num*((splitnum-1)*splitfiles+splitfiles)]; % ending index for each group
 else
-    inde = [inde length(dd0)]; % ending index for each group
+    inde = [inde length(WWmeta.dd0)]; % ending index for each group
 end
 
 %% analysis for upcast
-Nav_Vars = {'Burst_Temperature','Burst_Heading','Burst_Pitch','Burst_Roll'}; % Specify nav variables to be bin averaged
+Nav_Vars = {'Burst_WaterTemperature','Burst_Temperature','Burst_Heading','Burst_Pitch','Burst_Roll'}; % Specify nav variables to be bin averaged
 for var = Nav_Vars;var=var{:};
     Nav.(var)=[];
 end
 vele_up = [];  % final product, E/W velocity
 veln_up = [];  % final product, N/S velocity
+velu_up = [];  % final product, Up/Down velocity
 time_up = [];  % final product, time
 shearu_up = []; % final product, E/W shear
 shearv_up = []; % final product, N/S shear
@@ -69,6 +70,9 @@ amp_var_up = []; % final product, per bin amplitude std dev
 num_per_bin = []; % num samples per bin
 veln_up_var = [];  % N/S velocity variance
 vele_up_var = [];  % E/W velocity variance
+velu_up_var = [];  % Up/Down velocity variance
+vele_corr_up = [];  % final product, E/W velocity, "Sail" corrected
+veln_corr_up = [];  % final product, N/S velocity, "Sail" corrected
 
 for q = 1:length(inds)
     filename = ['Profiles_upcast_',WWmeta.name_aqd,'_',num2str(inds(q)),'_',num2str(inde(q)),'.mat']; % Name of the processed file
@@ -78,7 +82,14 @@ for q = 1:length(inds)
      
     %% run through each upcast
     for k = 1:length(index)
-        time = AQDprofiles_up{index(k)}.Burst_Time;
+        if isfield(AQDprofiles_up{index(k)},'Burst_Time')
+            time=AQDprofiles_up{index(k)}.Burst_Time;
+        elseif isfield(AQDprofiles_up{index(k)},'Burst_MatlabTimeStamp')
+            time=AQDprofiles_up{index(k)}.Burst_MatlabTimeStamp;
+        else
+            disp("Error: Could not find a time variable")
+        end
+        
         dpth = AQDprofiles_up{index(k)}.Burst_Pressure;
         % Gather correlation data
         if isfield(AQDprofiles_up{index(k)},'Burst_CorBeam1')
@@ -130,8 +141,26 @@ for q = 1:length(inds)
         pitch = AQDprofiles_up{index(k)}.Burst_Pitch;
         roll = AQDprofiles_up{index(k)}.Burst_Roll;
         heading = AQDprofiles_up{index(k)}.Burst_Heading;
-        acce = AQDprofiles_up{index(k)}.Burst_Accelerometer;
-        NCells = AQDprofiles_up{index(k)}.Burst_NCells(1); % number of cells
+        if isfield(AQDprofiles_up{index(k)},'Burst_Accelerometer')
+            acce = AQDprofiles_up{index(k)}.Burst_Accelerometer;
+        elseif isfield(AQDprofiles_up{index(k)},'Burst_AccelerometerX') & ...
+                isfield(AQDprofiles_up{index(k)},'Burst_AccelerometerY') & ...
+                isfield(AQDprofiles_up{index(k)},'Burst_AccelerometerZ')
+            acce = [AQDprofiles_up{index(k)}.Burst_AccelerometerX,...
+                AQDprofiles_up{index(k)}.Burst_AccelerometerY,...
+                AQDprofiles_up{index(k)}.Burst_AccelerometerZ];
+        else
+            disp('Error: could not find acceleration field')
+        end
+        
+        if isfield(AQDprofiles_up{index(k)},'Burst_NCells')
+            NCells = AQDprofiles_up{index(k)}.Burst_NCells(1); % number of cells
+        elseif isfield(AQDprofiles_up{index(k)},'Burst_NumberofCells')
+            NCells = AQDprofiles_up{index(k)}.Burst_NumberofCells(1);
+        else
+            disp('Error: could not find "Number of cells" field')
+        end
+        
         Npings = length(time);   % number of pings
         
         % Signuature 1000 beam geometry
@@ -147,7 +176,7 @@ for q = 1:length(inds)
         
         % caluate depth for each data point taking instrument orientaiton
         % and beam geometry into account
-        ranges = (ones(Npings,1)*cellsize*double(0:1:NCells-1) + blockdis)/cosd(25);
+        ranges = (ones(Npings,1)*cellsize*double(0:1:NCells-1) + blockdis + cellsize)/cosd(25);
         z_coords = zeros(size(ranges,1),size(ranges,2),4);
         for n = 1:size(ranges,1)
             if bZ(n,1)>0.1 & bZ(n,2)>0.1 & bZ(n,3)>0.1 & bZ(n,4)>0.1
@@ -200,9 +229,7 @@ for q = 1:length(inds)
         % Preform rotation to put surface beam velocities in ENU
         % coordiantes
         ENU_surf = Beam2ENU(surface_beam_vel(:,1),surface_beam_vel(:,2),surface_beam_vel(:,3),surface_beam_vel(:,4), pitch, roll, heading);
-        % Get surface velocities
-        surf = nanmean(ENU_surf);
-
+        
         % build dpth matrix. This assumes a nominal instrument orientation.
         % We will sample beamwise velocities at these depths
         if strcmp(direction,'down')
@@ -246,17 +273,104 @@ for q = 1:length(inds)
             end
         end
         
+        MC_cell = WWcorr_beam(time,dpth,acce,pitch,roll,heading,equal_depth_vel,saprate)';
+        equal_depth_vel_mc = MC_cell{1};
+        
+        ENU_surf(:,1) = ENU_surf(:,1) + MC_cell{3};
+        ENU_surf(:,2) = ENU_surf(:,2) + MC_cell{4};
+        ENU_surf(:,3) = ENU_surf(:,3) + MC_cell{5};
+        
+        % Get surface velocities
+        surf = nanmean(ENU_surf);
+        
+        depth_steps = 1:max(ranges(:));
+        % Attempt to predict wave orbital velocities from surface
+        % velocities and remove them. I think it works alright, but can
+        % cause bugs, so removed for now
+
+        % wave_vel = zeros(size(ENU_surf,1),3,length(depth_steps));
+        % for n = 1:3
+        %     good_surf = find(~isnan(ENU_surf(:,n)));
+        %     if isempty(good_surf)
+        %         continue
+        %     end
+        % 
+        %     if mod(good_surf(end)-good_surf(1)+1,2)==0
+        %         good_surf(1) = good_surf(1)+1;
+        %     end
+        %     U_surf = fillmissing(ENU_surf(good_surf(1):good_surf(end),n),'linear');
+        %     f_surf = saprate*(0:(length(U_surf)/2))/length(U_surf);
+        %     f_surf = [f_surf,-fliplr(f_surf(2:end))];
+        %     k_surf = (2*pi*f_surf).^2/9.8;
+        % 
+        %     dep_atten = exp(-transpose(k_surf).*depth_steps);
+        % 
+        %     U_surf = detrend(U_surf,'omitnan');
+        %     U_surf_f = [flip(U_surf);U_surf;flip(U_surf)];
+        %     [b,a] = butter(7,[0.07 1.2]/(saprate/2),'bandpass');  % set up filter, 0.1-1.2 Hz
+        %     U_surf_filt = filtfilt(b,a,double(U_surf_f));
+        %     U_surf_filt = U_surf_filt(length(U_surf_filt)*1/3+1:length(U_surf_filt)*2/3);  % chunk back to original length
+        % 
+        %     ft_surf = fft(U_surf_filt);
+        %     surf_atten = real(ifft(ft_surf.*dep_atten));
+        % 
+        %     wave_vel(good_surf(1):good_surf(end),n,:) = permute(surf_atten,[1,3,2]);
+        % end
+        % 
+        % wave_vel_interp = zeros(size(dpth_temp,1),3,size(dpth_temp,2));
+        % [xs,zs] = meshgrid(1:length(wave_vel),-depth_steps);
+        % for n = 1:3
+        %     wave_vel_interp(:,n,:) = permute(interp2(xs,zs,squeeze(wave_vel(:,n,:))',repmat((1:size(dpth_temp,1))',1,size(dpth_temp,2)),double(dpth_temp)),[1,3,2]);
+        % end
+            
         % Rotate shear and velocity from beam coordianates to ENU
         % coordinates
         equal_depth_shear_ENU = Beam2ENU(squeeze(equal_depth_shear(:,1,:)),squeeze(equal_depth_shear(:,2,:)),...
             squeeze(equal_depth_shear(:,3,:)),squeeze(equal_depth_shear(:,4,:)), pitch, roll, heading);
         
-        equal_depth_ENU = Beam2ENU(squeeze(equal_depth_vel(:,1,:)),squeeze(equal_depth_vel(:,2,:)),...
-            squeeze(equal_depth_vel(:,3,:)),squeeze(equal_depth_vel(:,4,:)), pitch, roll, heading);
+        equal_depth_ENU = Beam2ENU(squeeze(equal_depth_vel_mc(:,1,:)),squeeze(equal_depth_vel_mc(:,2,:)),...
+            squeeze(equal_depth_vel_mc(:,3,:)),squeeze(equal_depth_vel_mc(:,4,:)), pitch, roll, heading);
         
+        % To do wave orbital removal this must be un-commented
+        % wave_vel_interp(isnan(wave_vel_interp))=0;
+%         vele{1} = squeeze(equal_depth_ENU(:,1,:))-squeeze(wave_vel_interp(:,1,:));
+%         vele{2} = squeeze(equal_depth_ENU(:,2,:))-squeeze(wave_vel_interp(:,2,:));
+%         vele{3} = squeeze(equal_depth_ENU(:,3,:))-squeeze(wave_vel_interp(:,3,:));
+        
+        % Correct for horizontal motion of the wirewalker on the wire using
+        % the veritcal speeed and orientation of the wirewalker
+        if variables.sail_corr==1
+            dp_dt = -diff(dpth)./(diff(time)*86400);
+            dp_dt_sm = smoothdata(dp_dt,'gaussian',24);
+            dp_dt_sm = [0;dp_dt_sm];
+
+            % Get unit-vector for the +z axis on the wirewalker in ENU coodinates
+            ENU = XYZ2ENU(ones(size(pitch))*variables.z_unit(1),ones(size(pitch))*variables.z_unit(2),ones(size(pitch))*variables.z_unit(3),pitch,roll,heading);
+        
+            % Horizontal unit vector
+            b_h = sqrt(ENU(:,1).^2+ENU(:,2).^2);
+            
+            b_x = ENU(:,1);
+            b_y = ENU(:,2);
+            b_z = ENU(:,3);
+            
+            % Horizontal velocity compnent from wirewalker rise rate
+            v_h = dp_dt_sm.*b_h./b_z;           
+            % N-S velocity component
+            v_x = v_h.*b_x./b_h;         
+            % E-W velocity component
+            v_y = v_h.*b_y./b_h;
+        else
+            v_x = zeros(size(time));
+            v_y = zeros(size(time));
+        end
+
         vele{1} = squeeze(equal_depth_ENU(:,1,:));
         vele{2} = squeeze(equal_depth_ENU(:,2,:));
         vele{3} = squeeze(equal_depth_ENU(:,3,:));
+        
+        vele_corr{1} = squeeze(equal_depth_ENU(:,1,:))+v_x;
+        vele_corr{2} = squeeze(equal_depth_ENU(:,2,:))+v_y;
         
         % Smooth shears in time covering ~1-2 secs of data (0.5-1.5m equivelent vertical smoothing)
         shearu1 = smoothdata(smoothdata(squeeze(equal_depth_shear_ENU(:,1,:)),2,'movmean',1),'gaussian',8);
@@ -270,8 +384,7 @@ for q = 1:length(inds)
         vele{2}(find(m == 1)) = nan;
         vele{3}(find(m == 1)) = nan;
         
-        % calculate ww motion velocity. Correct for WW motion
-        velemc = WWcorr(time,dpth,acce,pitch,roll,heading,vele,saprate);
+        vele{3}(repmat(smoothdata(MC_cell{5},'gaussian',30)<0.8*median(MC_cell{5}),1,size(vele{3},2))) = NaN;
         
         % build time matrix
         time_temp = time*ones(1,NCells);
@@ -279,21 +392,25 @@ for q = 1:length(inds)
         time_temp_all = time_temp(:);
 
         % reshape velocity and shear from 2D arrays into vectors
-        velemcE_temp_all = velemc{1}(:);  % E/W
-        velemcN_temp_all = velemc{2}(:);  % N/S
+        velemcE_temp_all = vele{1}(:);  % E/W
+        velemcN_temp_all = vele{2}(:);  % N/S
+        velemcE_corr_temp_all = vele_corr{1}(:);  % E/W
+        velemcN_corr_temp_all = vele_corr{2}(:);  % N/S
+        velemcU_temp_all = vele{3}(:);  % N/S
         shearu1_temp = shearu1(:);
         shearv1_temp = shearv1(:);
         
         %% box averaging
         z = (0:-boxs:-z_max)';
         % Temporary arrays to store binned data
-        temp_pro = nan(length(z),2);  % each profile, first column: E/W; second column: N/S
+        temp_pro = nan(length(z),3);  % each profile, first column: E/W; second column: N/S
+        temp_pro_corr = nan(length(z),2);  % each profile, first column: E/W; second column: N/S
         temp_pro_amp = nan(length(z),4); % each profile, 1 column per beam
         temp_pro_amp_var = nan(length(z),4); % each profile, 1 column per beam
         temp_pro_shear = nan(length(z),2); % each profile, first column: E/W; second column: N/S
         temp_time = nan(length(z),1);  % box-averaged time        
         temp_bin_num = nan(length(z),1); %number of samples per bin
-        temp_pro_vel_var = nan(length(z),2);  % each profile variance per bin, first column: E/W; second column: N/S
+        temp_pro_vel_var = nan(length(z),3);  % each profile variance per bin, first column: E/W; second column: N/S
 
         for var = Nav_Vars;var=var{:};
             temp_pro_Nav.(var) = nan(length(z),1); % each profile, 1 field per nav variable
@@ -311,7 +428,7 @@ for q = 1:length(inds)
             index_box_1D = find(z(i)-boxs/2<-dpth & -dpth<=z(i)+boxs/2);
             
             % Bin amplitudes, and amplitude variance
-            if ~isempty(index_box_1) & ~isempty(index_box_2) & ~isempty(index_box_3) & ~isempty(index_box_4)
+            if ~isempty(index_box_1) & ~isempty(index_box_2) && ~isempty(index_box_3) & ~isempty(index_box_4)
                 temp_pro_amp(i,1)  = nanmean(amp_norm_1(index_box_1));
                 temp_pro_amp(i,2)  = nanmean(amp_norm_2(index_box_2));
                 temp_pro_amp(i,3)  = nanmean(amp_norm_3(index_box_3));
@@ -327,16 +444,24 @@ for q = 1:length(inds)
             if length(index_box)>0 & sum(~isnan(velemcE_temp_all(index_box)))>10 &...
                     sum(~isnan(velemcN_temp_all(index_box)))>10
                 temp_pro(i,1)  = nanmean(velemcE_temp_all(index_box));
-                temp_pro(i,2)  = nanmean(velemcN_temp_all(index_box));                       
+                temp_pro(i,2)  = nanmean(velemcN_temp_all(index_box));
+                temp_pro(i,3)  = nanmean(velemcU_temp_all(index_box));  
+                temp_pro_corr(i,1)  = nanmean(velemcE_corr_temp_all(index_box));
+                temp_pro_corr(i,2)  = nanmean(velemcN_corr_temp_all(index_box));
                 temp_time(i,1) = nanmean(time_temp_all(index_box));
                 temp_bin_num(i,1)  = sum(~isnan(velemcE_temp_all(index_box)) & ~isnan(velemcN_temp_all(index_box)));
                 temp_pro_vel_var(i,1)  = nanstd(velemcE_temp_all(index_box));
-                temp_pro_vel_var(i,2)  = nanstd(velemcN_temp_all(index_box));      
+                temp_pro_vel_var(i,2)  = nanstd(velemcN_temp_all(index_box)); 
+                temp_pro_vel_var(i,3)  = nanstd(velemcU_temp_all(index_box));      
             end
             % Bin nav variables
             if length(index_box_1D)>0
                 for var = Nav_Vars;var=var{:};
-                    temp_pro_Nav.(var)(i) = nanmean(AQDprofiles_up{index(k)}.(var)(index_box_1D));
+                    try
+                        temp_pro_Nav.(var)(i) = nanmean(AQDprofiles_up{index(k)}.(var)(index_box_1D));
+                    catch
+                        continue
+                    end
                 end
             end
         end
@@ -357,6 +482,9 @@ for q = 1:length(inds)
         % Add profile to profiles already calulated.
         vele_up = [vele_up temp_pro(:,1)];
         veln_up = [veln_up temp_pro(:,2)];
+        velu_up = [velu_up temp_pro(:,3)];
+        vele_corr_up = [vele_corr_up temp_pro_corr(:,1)];
+        veln_corr_up = [veln_corr_up temp_pro_corr(:,2)];
         amp_up = cat(3,amp_up,temp_pro_amp);
         amp_var_up = cat(3,amp_var_up,temp_pro_amp_var);
         shearu_up = [shearu_up temp_pro_shear(:,1)];
@@ -366,12 +494,13 @@ for q = 1:length(inds)
         num_per_bin = [num_per_bin temp_bin_num];
         vele_up_var = [vele_up_var temp_pro_vel_var(:,1)];
         veln_up_var = [veln_up_var temp_pro_vel_var(:,2)];
-        
+        velu_up_var = [velu_up_var temp_pro_vel_var(:,3)];
+
         for var = Nav_Vars;var=var{:};
             Nav.(var) = [Nav.(var),temp_pro_Nav.(var)];
         end
         
-        disp([filename,' total #= ',num2str(size(time_up,2))]);
+        disp(['Processing Mean Velocity ' filename,' total #= ',num2str(size(time_up,2))]);
     end
 end
 
@@ -389,6 +518,10 @@ out{10} = permute(amp_var_up,[1,3,2]);
 out{11} = num_per_bin;
 out{12} = vele_up_var;
 out{13} = veln_up_var;
+out{14} = velu_up;
+out{15} = velu_up_var;
+out{16} = vele_corr_up;
+out{17} = veln_corr_up;
 
 %% analysis for downcast - still needs work to be done
 if upcast_bool == 1
