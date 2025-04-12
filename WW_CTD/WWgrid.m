@@ -42,7 +42,7 @@ RBRgrid.idx = idx;
 % else
 %     zaxis=0:.25:max(cellfun(@(x) max(x.P),RBRprofiles));
 % end
-dep_res = nanmedian(diff(zaxis));
+dep_res = median(diff(zaxis),'omitnan');
 
 Z=length(zaxis);
 fields=fieldnames(RBRprofiles{1});

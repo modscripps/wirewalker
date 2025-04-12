@@ -53,6 +53,19 @@ for c=1:size(RSKread.data.values,2) %
                     end
                 end
             end
+        case 'Temperature2'
+            if ~isfield(out,'T')
+                out.T=RSKread.data.values(:,c);
+            elseif isfield(out,'T')
+                for n = 1:10
+                    if isfield(out,['T' num2str(n)])
+                        continue
+                    else
+                        eval(['out.T' num2str(n) '=RSKread.data.values(:,c);']);
+                        break
+                    end
+                end
+            end
         case 'Dissolved O concentration'
             out.O2=RSKread.data.values(:,c);
         case 'Chlorophyll-a'
@@ -70,10 +83,10 @@ for c=1:size(RSKread.data.values,2) %
         case 'Dissolved O saturation'
             out.O2_sat=RSKread.data.values(:,c);
         case 'Irradiance'
-            if ~isfield(out,'irr')
-                out.irr=RSKread.data.values(:,c);
-            elseif isfield(out,'irr')
-                for n = 1:10
+            if ~isfield(out,'irr1')
+                out.irr1=RSKread.data.values(:,c);
+            elseif isfield(out,'irr1')
+                for n = 2:10
                     if isfield(out,['irr' num2str(n)])
                         continue
                     else
@@ -82,6 +95,16 @@ for c=1:size(RSKread.data.values,2) %
                     end
                 end
             end
+        case 'Dissolved O21'
+            out.O2=RSKread.data.values(:,c);
+        case 'Dissolved O22'
+            out.O2_sat=RSKread.data.values(:,c);
+        case 'CT Cell Temperature'
+            out.T_CTcell=RSKread.data.values(:,c);
+        case 'Pressure Gauge Temperature'
+            out.T_PressureGuage=RSKread.data.values(:,c);
+        case 'Salinity'
+            out.S_RBR=RSKread.data.values(:,c);
         otherwise
             i=i+1;
             eval(sprintf('out.v%i=RSKread.data.values(:,c)',i));

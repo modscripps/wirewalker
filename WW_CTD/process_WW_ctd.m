@@ -5,12 +5,12 @@
 % - % - % - % - % - % - % - % - % - % - % - % - % - % - %- %
 %% convert .rsk file into matlab file
 clear all
-WWmeta.rbrpath = '/Users/Devon/Documents/GradSchool/ASTRAL/RBR_Raw/DBASIS/Upper/';
+WWmeta.rbrpath = '/Volumes/NorseTPADS/NORSE_ASTRAL_raw_data/ASTRAL/DBASIS_lower/';
 WWmeta.rbrfile=dir(fullfile(WWmeta.rbrpath,'*.rsk'));
-WWmeta.name_rbr = 'ASTRAL_DBASIS_Upper_2';
-WWmeta.matpath = '/Users/Devon/Documents/GradSchool/ASTRAL/WW_Processed/DBASIS/Upper/RBR/mat/';  % path for converted mat file
-WWmeta.propath = '/Users/Devon/Documents/GradSchool/ASTRAL/WW_Processed/DBASIS/Upper/RBR/profile/';  % path for saving upcast profiles
-WWmeta.gridpath = '/Users/Devon/Documents/GradSchool/ASTRAL/WW_Processed/DBASIS/Upper/RBR/grid/';  % path for the gridded product
+WWmeta.name_rbr = 'ASTRAL_DBASIS_Lower_3';
+WWmeta.matpath = '/Users/Devon/Documents/GradSchool/ASTRAL/WW_Processed/DBASIS/Lower/RBR/mat/';  % path for converted mat file
+WWmeta.propath = '/Users/Devon/Documents/GradSchool/ASTRAL/WW_Processed/DBASIS/Lower/RBR/profile/';  % path for saving upcast profiles
+WWmeta.gridpath = '/Users/Devon/Documents/GradSchool/ASTRAL/WW_Processed/DBASIS/Lower/RBR/grid/';  % path for the gridded product
 WWmeta.rsktoolspath = '/Users/Devon/Documents/MATLAB/rbr-rsktoolsv353/';
 addpath(genpath(WWmeta.rsktoolspath))
 WWmeta.lat = 12;
