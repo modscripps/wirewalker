@@ -175,7 +175,7 @@ for q = 1:length(inds)
             z_grid_dec = z_grid(floor(vel_inds/2+1):vel_inds:end);
     
             if size(D_save_dec,2)>10
-                fit_end = 10;
+                fit_end = 15;
             else
                 fit_end = size(D_save_dec,2);
             end
@@ -191,11 +191,11 @@ for q = 1:length(inds)
     
             % calculate epsilon
             ep = real((A_turb/2).^(3/2));
-    
+            
             turb.ep_struct(:,ind,iBeam) = transpose(ep);
             turb.A_struct(:,ind,iBeam) = transpose(A_turb);
             turb.N_struct(:,ind,iBeam) = transpose(N);
-            turb.struct_fun = cat(2,turb.struct_fun,permute(D_save_dec,[1,3,2]));
+            turb.struct_fun(:,ind,:,iBeam) = permute(D_save_dec,[1,3,2]);
     
             % Wavenumber spectrum method
             ks_len = 100;
