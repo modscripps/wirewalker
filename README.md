@@ -1,5 +1,6 @@
 # Wirewalker
-Aquadopp and RBR Data processing 
+Nortek Signature 1000 and RBR Data processing for the Wirewalker vehicle.
+Maintained by MOD/SIO for Scripps Users. This processing will take some time to get set up for new users.
 
 Processing of the WireWalker data using the upcast data:
 - processing of the aquadopp data - from beam velocity to geographical
