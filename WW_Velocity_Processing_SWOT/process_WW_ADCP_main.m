@@ -11,16 +11,16 @@
 % convert .ad2cp files into .mat files
 
 clc; clear all;
-MainPath = '/Users/Devon/Documents/GradSchool/Nortek_Turbulence/TLC_25/';
-Wirewalker = 'WW3';   
-Deployment = 'D1';
+MainPath = '/Volumes/NorseTPADS/WW_NORSE_23/';
+Wirewalker = 'WW_L';   
+Deployment = 'D2';
 
 % Path to raw data
-WWmeta.aqdpath=['/Users/Devon/Documents/GradSchool/Nortek_Turbulence/TLC_25/raw/'];
+WWmeta.aqdpath=['/Volumes/NorseTPADS/NORSE_ASTRAL_raw_data/NORSE23/DBASIS_lower_D2/RAW/'];
 % root for WW_ADCP toolbox
 WWmeta.root_script='/Users/Devon/Documents/GradSchool/wirewalker/WW_Velocity_Processing_SWOT/';
 % Name of the processed data, can be changed according to different cruises
-WWmeta.name_aqd=['TLC25_' Wirewalker '_' Deployment]; 
+WWmeta.name_aqd=['' Wirewalker '_' Deployment]; 
 
 WWmeta = SetupPath(WWmeta,MainPath,Wirewalker,Deployment);
 
@@ -51,25 +51,25 @@ WWmeta.dd0 = dd0;
 %                      data will be processed and saved.
 % thhold             : threshold value to determine whether it is too short
 %                      to be a profile
-variables.NUM_combining_files = 20;  % need to specify the number for combining files, the default is: 1
+variables.NUM_combining_files = 1;  % need to specify the number for combining files, the default is: 1
 variables.blockdis = 0.1;            % need to specify the blocking distance, the default is: 0.1m
 variables.cellsize = 1;             % need to specify the cell size, the default is: 1m
 variables.saprate = 8;              % need to specify the sampling rate, the default is: 16Hz
 variables.boxsize = 1;             % is set to be 0.5m vertically, default is 0.5m
-variables.z_max   = 100;              % 500m profile, the default is: 500m
+variables.z_max   = 205;              % 500m profile, the default is: 500m
 variables.k = 0;                     % 1 or not 1 (Is upcast data processed)
 variables.thhold = 2;              % need to specify the number (2)
 variables.direction = 'up';        % up or down
-variables.sail_corr = 0;           % Correct for horizontal motion of the wirewalker? yes = 1, no = 0
+variables.sail_corr = 1;           % Correct for horizontal motion of the wirewalker? yes = 1, no = 0
 variables.z_unit = [-1/sqrt(2)*sind(22.5),-1/sqrt(2)*sind(22.5),cosd(22.5)]; % Unit vector of Nortek z-axis relitive to wirewalker z-axis
 
 variables.HRturb = 1;            % Process HR mode data for turbulence? yes = 1, no = 0
 
 if variables.HRturb == 1
-    variables.HRbeams = [1,2,3,4];  % Beams with HR mode enabled
+    variables.HRbeams = [5];  % Beams with HR mode enabled
     variables.HRblockdis = 0.1;     % blocking distance with HR mode
-    variables.HRcellsize = 0.06;    % cell size for HR mesurments
-    variables.HRboxsize = 50*variables.HRcellsize; % Depth resolution of final turbulence estimates
+    variables.HRcellsize = 0.08;    % cell size for HR mesurments
+    variables.HRboxsize = 100*variables.HRcellsize; % Depth resolution of final turbulence estimates
 end
 
 %% sort files (slow!)
@@ -103,39 +103,39 @@ disp('combining: finished')
 %% WWvel analysis
 % here the motion correction and box averaging are performed
 
-splitfiles = 25;splitnum=1;
+splitfiles = 50;splitnum=1;
 numfiles = ceil(length(WWmeta.dd0)/variables.NUM_combining_files);
 
 while splitfiles*(splitnum-1)<numfiles
-    % Vel = WWvel_upward(WWmeta,variables,0,splitfiles,splitnum);  % function to generate estimated velocity field
-    % 
-    % ADCP.time = Vel{3};
-    % ADCP.dz   = Vel{4};
-    % ADCP.velE = Vel{1};
-    % ADCP.velN = Vel{2};
-    % ADCP.velU = Vel{14};
-    % ADCP.shearE = Vel{5};
-    % ADCP.shearN = Vel{6};
-    % ADCP.surf_vel = Vel{7};
-    % ADCP.Nav = Vel{8};
-    % ADCP.amp = Vel{9};
-    % ADCP.amp_var = Vel{10};
-    % ADCP.velE_var = Vel{12};
-    % ADCP.velN_var = Vel{13};
-    % ADCP.velU_var = Vel{15};
-    % ADCP.N = Vel{11};
-    % if variables.sail_corr == 1
-    %     ADCP.velE_corr = Vel{16};
-    %     ADCP.velN_corr = Vel{17};
-    % end
-    % 
-    % ADCP.Notes = '';
-    % 
-    % save([WWmeta.gridpath,WWmeta.name_aqd,'_' num2str(splitnum) '_Test2.mat'],'ADCP');  % save result
+    Vel = WWvel_upward(WWmeta,variables,0,splitfiles,splitnum);  % function to generate estimated velocity field
+
+    ADCP.time = Vel{3};
+    ADCP.dz   = Vel{4};
+    ADCP.velE = Vel{1};
+    ADCP.velN = Vel{2};
+    ADCP.velU = Vel{14};
+    ADCP.shearE = Vel{5};
+    ADCP.shearN = Vel{6};
+    ADCP.surf_vel = Vel{7};
+    ADCP.Nav = Vel{8};
+    ADCP.amp = Vel{9};
+    ADCP.amp_var = Vel{10};
+    ADCP.velE_var = Vel{12};
+    ADCP.velN_var = Vel{13};
+    ADCP.velU_var = Vel{15};
+    ADCP.N = Vel{11};
+    if variables.sail_corr == 1
+        ADCP.velE_corr = Vel{16};
+        ADCP.velN_corr = Vel{17};
+    end
+
+    ADCP.Notes = '';
+
+    save([WWmeta.gridpath,WWmeta.name_aqd,'_' num2str(splitnum) '_update.mat'],'ADCP');  % save result
 
     if variables.HRturb==1
         turb = WWturb_upward(WWmeta,variables,splitfiles,splitnum);
-        save([WWmeta.gridpath,WWmeta.name_aqd,'_' num2str(splitnum) '_HR_Turbulence_Test2.mat'],'turb');
+        save([WWmeta.gridpath,WWmeta.name_aqd,'_' num2str(splitnum) '_HR_Turbulence.mat'],'turb');
     end
     
     splitnum = splitnum+1;

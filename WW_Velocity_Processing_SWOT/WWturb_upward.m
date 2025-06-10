@@ -39,7 +39,11 @@ for q = 1:length(inds)
     %% run through each upcast
     for k = 1:length(index)
         profile = AQDprofiles_up{index(k)};
-    
+        
+        if ~isfield(profile,'IBurstHR_Pressure')
+            continue
+        end
+        
         % Get depth and vertical motion of the platform
         depth = profile.IBurstHR_Pressure;
         if isfield(profile,'IBurstHR_MatlabTimeStamp')

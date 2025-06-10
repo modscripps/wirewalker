@@ -88,24 +88,27 @@ if (sum(strcmp(fields,'IBurstHR_Time'))==1 | sum(strcmp(fields,'IBurstHR_MatlabT
         HRtdata=data.IBurstHR_MatlabTimeStamp;
     else
         disp("Error: Could not find a time variable")
-    end    
-    HRfields_cell = strfind(fields,'IBurstHR');
-    HRfields_bool = zeros(size(HRfields_cell));
-    for i = 1:length(HRfields_cell)
-        HRfields_bool(i) = ~isempty(HRfields_cell{i});
     end
-    HRfields = fields;
-    HRfields(~HRfields_bool)=[];
-    len_diff = length(tdata)-length(HRtdata);
-    if len_diff<0
-        for f=1:length(HRfields)
-            wh_field=HRfields{f};
-            data.(wh_field) = data.(wh_field)(1:end+len_diff,:);
+ 
+    if length(tdata)~=length(HRtdata)
+        HRfields_cell = strfind(fields,'IBurstHR');
+        HRfields_bool = zeros(size(HRfields_cell));
+        for i = 1:length(HRfields_cell)
+            HRfields_bool(i) = ~isempty(HRfields_cell{i});
         end
-    elseif len_diff>0
-        for f=1:length(HRfields)
-            wh_field=HRfields{f};
-            data.(wh_field) = [data.(wh_field);nan(len_diff,size(data.(wh_field),2))];
+        HRfields = fields;
+        HRfields(~HRfields_bool)=[];
+        len_diff = length(tdata)-length(HRtdata);
+        if len_diff<0
+            for f=1:length(HRfields)
+                wh_field=HRfields{f};
+                data.(wh_field) = data.(wh_field)(1:end+len_diff,:);
+            end
+        elseif len_diff>0
+            for f=1:length(HRfields)
+                wh_field=HRfields{f};
+                data.(wh_field) = [data.(wh_field);nan(len_diff,size(data.(wh_field),2))];
+            end
         end
     end
 end
