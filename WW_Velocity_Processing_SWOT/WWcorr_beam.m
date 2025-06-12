@@ -58,11 +58,11 @@ acw = acw(length(acw)*1/3+1:length(acw)*2/3);
 acw = acw - nanmean(acw); % demean
 
 
-% dpw = (diff(dpth(1:end-1))-flipud(diff(flipud(dpth(2:end)))))/(2/saprate);
-% dpw = [flip(dpw); dpw; flip(dpw)];
-% [b,a] = butter(1,0.3/(saprate/2),'low');  % set up filter, lowpass cutoff 0.1Hz
-% dpw = filtfilt(b,a,double(dpw));
-% dpw = dpw(length(dpw)*1/3:length(dpw)*2/3+1);
+dpw = (diff(dpth(1:end-1))-flipud(diff(flipud(dpth(2:end)))))/(2/saprate);
+dpw = [flip(dpw); dpw; flip(dpw)];
+[b,a] = butter(1,0.3/(saprate/2),'low');  % set up filter, lowpass cutoff 0.1Hz
+dpw = filtfilt(b,a,double(dpw));
+dpw = dpw(length(dpw)*1/3:length(dpw)*2/3+1);
 
 
 %% calculate WW motion - translational velocity
@@ -98,8 +98,8 @@ end
 
 %% motion corrected velocity
 
-% vel_xyz = XYZ2ENU(WWu,WWv,-dpw+WWw,pitch,roll,heading,'reverse');
-vel_xyz = XYZ2ENU(WWu,WWv,WWw,pitch,roll,heading,'reverse');
+vel_xyz = XYZ2ENU(WWu,WWv,-dpw+WWw,pitch,roll,heading,'reverse');
+% vel_xyz = XYZ2ENU(WWu,WWv,WWw,pitch,roll,heading,'reverse');
 % Signuature 1000 beam geometry
 phi = [65,65,65,65]*pi/180;
 azi = [0,-90,180,90]*pi/180;
@@ -122,7 +122,7 @@ out{1} = vel_beam_mc;  % motion corrected
 out{2} = vel_corr_beam;
 out{3} = WWu;    % WW motion
 out{4} = WWv;
-% out{5} = -dpw+WWw;
-out{5} = WWw;
+out{5} = -dpw+WWw;
+% out{5} = WWw;
 
 end
