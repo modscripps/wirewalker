@@ -5,16 +5,16 @@
 % - % - % - % - % - % - % - % - % - % - % - % - % - % - %- %
 %% convert .rsk file into matlab file
 clear all
-WWmeta.rbrpath = '/Volumes/NorseTPADS/NORSE_ASTRAL_raw_data/ASTRAL/DBASIS_lower/';
+WWmeta.rbrpath = '/Volumes/NorseTPADS/NORSE_ASTRAL_raw_data/NORSE23/DBASIS_upper_D2/';
 WWmeta.rbrfile=dir(fullfile(WWmeta.rbrpath,'*.rsk'));
-WWmeta.name_rbr = 'ASTRAL_DBASIS_Lower_3';
-WWmeta.matpath = '/Users/Devon/Documents/GradSchool/ASTRAL/WW_Processed/DBASIS/Lower/RBR/mat/';  % path for converted mat file
-WWmeta.propath = '/Users/Devon/Documents/GradSchool/ASTRAL/WW_Processed/DBASIS/Lower/RBR/profile/';  % path for saving upcast profiles
-WWmeta.gridpath = '/Users/Devon/Documents/GradSchool/ASTRAL/WW_Processed/DBASIS/Lower/RBR/grid/';  % path for the gridded product
+WWmeta.name_rbr = 'NORSE_23_WWH_D2';
+WWmeta.matpath = '/Volumes/NorseTPADS/WW_NORSE_23/RBR/WW_H_D2/mat/';  % path for converted mat file
+WWmeta.propath = '/Volumes/NorseTPADS/WW_NORSE_23/RBR/WW_H_D2/profile/';  % path for saving upcast profiles
+WWmeta.gridpath = '/Volumes/NorseTPADS/WW_NORSE_23/RBR/WW_H_D2/grid/';  % path for the gridded product
 WWmeta.rsktoolspath = '/Users/Devon/Documents/MATLAB/rbr-rsktoolsv353/';
 addpath(genpath(WWmeta.rsktoolspath))
-WWmeta.lat = 12;
-WWmeta.lon = 85;
+WWmeta.lat = 71;
+WWmeta.lon = -6.5;
 
 WWmeta.thorpescales.yn = 0; % Do thorpe scale analysis (1=yes, 0=no);
 

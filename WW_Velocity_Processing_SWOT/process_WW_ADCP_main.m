@@ -11,16 +11,16 @@
 % convert .ad2cp files into .mat files
 
 clc; clear all;
-MainPath = '/Volumes/NorseTPADS/WW_NORSE_23/';
-Wirewalker = 'WW_L';   
-Deployment = 'D2';
+MainPath = '/Volumes/NorseTPADS/WW_Norse/';
+Wirewalker = 'WW2';   
+Deployment = 'D1';
 
 % Path to raw data
-WWmeta.aqdpath=['/Volumes/NorseTPADS/NORSE_ASTRAL_raw_data/NORSE23/DBASIS_lower_D2/RAW/'];
+WWmeta.aqdpath=['/Volumes/NorseTPADS/NORSE_ASTRAL_raw_data/NORSE22/DBASIS2/D1/'];
 % root for WW_ADCP toolbox
 WWmeta.root_script='/Users/Devon/Documents/GradSchool/wirewalker/WW_Velocity_Processing_SWOT/';
 % Name of the processed data, can be changed according to different cruises
-WWmeta.name_aqd=['' Wirewalker '_' Deployment]; 
+WWmeta.name_aqd=['NORSE_' Wirewalker '_' Deployment]; 
 
 WWmeta = SetupPath(WWmeta,MainPath,Wirewalker,Deployment);
 
@@ -56,19 +56,19 @@ variables.blockdis = 0.1;            % need to specify the blocking distance, th
 variables.cellsize = 1;             % need to specify the cell size, the default is: 1m
 variables.saprate = 8;              % need to specify the sampling rate, the default is: 16Hz
 variables.boxsize = 1;             % is set to be 0.5m vertically, default is 0.5m
-variables.z_max   = 205;              % 500m profile, the default is: 500m
+variables.z_max   = 505;              % 500m profile, the default is: 500m
 variables.k = 0;                     % 1 or not 1 (Is upcast data processed)
 variables.thhold = 2;              % need to specify the number (2)
 variables.direction = 'up';        % up or down
 variables.sail_corr = 1;           % Correct for horizontal motion of the wirewalker? yes = 1, no = 0
-variables.z_unit = [-1/sqrt(2)*sind(22.5),-1/sqrt(2)*sind(22.5),cosd(22.5)]; % Unit vector of Nortek z-axis relitive to wirewalker z-axis
+variables.z_unit = [-1/sqrt(2)*sind(0),-1/sqrt(2)*sind(0),cosd(0)]; % Unit vector of Nortek z-axis relitive to wirewalker z-axis
 
 variables.HRturb = 1;            % Process HR mode data for turbulence? yes = 1, no = 0
 
 if variables.HRturb == 1
     variables.HRbeams = [5];  % Beams with HR mode enabled
     variables.HRblockdis = 0.1;     % blocking distance with HR mode
-    variables.HRcellsize = 0.08;    % cell size for HR mesurments
+    variables.HRcellsize = 0.04;    % cell size for HR mesurments
     variables.HRboxsize = 100*variables.HRcellsize; % Depth resolution of final turbulence estimates
 end
 
