@@ -9,8 +9,7 @@ direction = 'up';     % Look direction. Only "up" has been tested
 dep_start = datenum([2025,3,31,21,38,0]);   % Deployment period start
 dep_end = datenum([2025,4,16,0,0,0]);       % Deployment period end
 raw_data_files = dir('/Users/Devon/Documents/GradSchool/DTS/TLC25_Sig500/Raw/*.mat'); % Path to raw files
-savefile = '/Users/Devon/Documents/GradSchool/DTS/TLC25_Sig500/Binned_ADCP.mat';      % path to save file
-
+savefile = '/Users/Devon/Documents/GradSchool/DTS/TLC25_Sig500/Binned_ADCP.mat';
 % initalize binned outputs
 velE_binned = zeros(length(min_depth:box_size:max_depth),length(dep_start:time_bin/86400:dep_end),2);
 velN_binned = zeros(length(min_depth:box_size:max_depth),length(dep_start:time_bin/86400:dep_end),2);
@@ -18,11 +17,9 @@ velU_binned = zeros(length(min_depth:box_size:max_depth),length(dep_start:time_b
 amp_binned = zeros(length(min_depth:box_size:max_depth),length(dep_start:time_bin/86400:dep_end),4,2);
 
 for i = 28:length(raw_data_files)
-        % Load data
         load([raw_data_files(i).folder '/' raw_data_files(i).name]);        
         disp(['Processing file ' num2str(i)])
-        
-        % Gather time data
+
         if isfield(Data,'Burst_Time')
             time=Data.Burst_Time;
         elseif isfield(Data,'Burst_MatlabTimeStamp')
@@ -30,10 +27,8 @@ for i = 28:length(raw_data_files)
         else
             disp("Error: Could not find a time variable")
         end
-        
-        % Gather pressure data
-        dpth = Data.Burst_Pressure;
 
+        dpth = Data.Burst_Pressure;
         % Gather correlation data
         if isfield(Data,'Burst_CorBeam1')
             corr1 = double(Data.Burst_CorBeam1);
@@ -164,11 +159,10 @@ for i = 28:length(raw_data_files)
             end
         end
         
-        % Motion correct beam data
+        
         MC_cell = WWcorr_beam(time,dpth,acce,pitch,roll,heading,equal_depth_vel,saprate)';
         equal_depth_vel_mc = MC_cell{1};     
         
-        % rotate into beam coordinates
         equal_depth_ENU = Beam2ENU(squeeze(equal_depth_vel_mc(:,1,:)),squeeze(equal_depth_vel_mc(:,2,:)),...
             squeeze(equal_depth_vel_mc(:,3,:)),squeeze(equal_depth_vel_mc(:,4,:)), pitch, roll, heading);
         
@@ -188,10 +182,10 @@ for i = 28:length(raw_data_files)
         vele{2} = smoothdata(vele{2},'gaussian',saprate*20);
         vele{3} = smoothdata(vele{3},'gaussian',saprate*20);
         
-        % Bin velocity and amplitude data
         depth_ind = ceil((dpth_temp+max_depth)/box_size);
         time_ind = ceil((time - dep_start)/(time_bin/86400));
         time_ind = repmat(time_ind,1,size(depth_ind,2));
+        
 
         for n = 1:numel(depth_ind)
             if ~isnan(depth_ind(n)) & ~isnan(time_ind(n)) & ...
@@ -229,14 +223,12 @@ for i = 28:length(raw_data_files)
         end
 end
 
-% average velocity and amplitude data
 velN_binned = velN_binned(:,:,1)./velN_binned(:,:,2);
 velE_binned = velE_binned(:,:,1)./velE_binned(:,:,2);
 velU_binned = velU_binned(:,:,1)./velU_binned(:,:,2);
 
 amp_binned = amp_binned(:,:,:,1)./amp_binned(:,:,:,2);
 
-% build and save output structure
 ADCP.depth = transpose((max_depth:-box_size:min_depth) - box_size/2);
 ADCP.time = (dep_start:time_bin/86400:dep_end) + time_bin/86400/2;
 ADCP.velE = velE_binned;
