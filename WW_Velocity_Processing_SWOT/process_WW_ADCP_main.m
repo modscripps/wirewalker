@@ -5,22 +5,27 @@
 % Oct.11 2021
 % boz080@ucsd.edu
 
+% Modified for use by Caeli Griffin April 2025
+
 %% set path
 % here the code is fed with .mat files of the measured velocity. To obtain
 % .mat files, user needs to run Signature Deployment software first to
 % convert .ad2cp files into .mat files
 
 clc; clear all;
-MainPath = '/Volumes/NorseTPADS/WW_Norse/';
-Wirewalker = 'WW2';   
-Deployment = 'D1';
+MainPath = '/Users/caeligriffin/Desktop/swot_nopp_s2/code/START202305_END202306_DEPLOY1-SUBSET/proc/';
+% MainPath = '/Users/Devon/Documents/GradSchool/Nortek_Turbulence/TLC_25/';
+Wirewalker = 'WW';   
+Deployment = 'D1-SUB';
 
 % Path to raw data
-WWmeta.aqdpath=['/Volumes/NorseTPADS/NORSE_ASTRAL_raw_data/NORSE22/DBASIS2/D1/'];
+WWmeta.aqdpath=['/Users/caeligriffin/Desktop/swot_nopp_s2/code/START202305_END202306_DEPLOY1-SUBSET/raw/'];
+% WWmeta.aqdpath=['/Users/Devon/Documents/GradSchool/Nortek_Turbulence/TLC_25/raw/'];
 % root for WW_ADCP toolbox
-WWmeta.root_script='/Users/Devon/Documents/GradSchool/wirewalker/WW_Velocity_Processing_SWOT/';
+WWmeta.root_script='/Users/caeligriffin/Desktop/swot_nopp_s2/WW_Velocity_Processing_SWOT_CLEAN'; 
+% WWmeta.root_script='/Users/Devon/Documents/GradSchool/wirewalker/WW_Velocity_Processing_SWOT/';
 % Name of the processed data, can be changed according to different cruises
-WWmeta.name_aqd=['NORSE_' Wirewalker '_' Deployment]; 
+WWmeta.name_aqd=['SN23_' Wirewalker '_' Deployment]; 
 
 WWmeta = SetupPath(WWmeta,MainPath,Wirewalker,Deployment);
 
@@ -28,6 +33,7 @@ WWmeta % display what has been entered
 cd(WWmeta.root_script) % change directory to the location...
 dd0 = dir([WWmeta.aqdpath '*.mat']);
 WWmeta.dd0 = dd0;
+dd0 = dd0(~startsWith({dd0.name}, '._')); % Added by Caeli Griffin to remove files that start with '._'.
 
 %% set variables
 % adjustable variables include:
@@ -53,23 +59,23 @@ WWmeta.dd0 = dd0;
 %                      to be a profile
 variables.NUM_combining_files = 1;  % need to specify the number for combining files, the default is: 1
 variables.blockdis = 0.1;            % need to specify the blocking distance, the default is: 0.1m
-variables.cellsize = 1;             % need to specify the cell size, the default is: 1m
+variables.cellsize = 0.5;             % need to specify the cell size, the default is: 1m
 variables.saprate = 8;              % need to specify the sampling rate, the default is: 16Hz
-variables.boxsize = 1;             % is set to be 0.5m vertically, default is 0.5m
-variables.z_max   = 505;              % 500m profile, the default is: 500m
+variables.boxsize = 1;             % typically set to </= 1m (instructions updated by Caeli Griffin, following conversations with Drew Lucas & Devon Northcott)
+variables.z_max   = 510;              % 500m profile, the default is: 500m, should slightly exceed actually max depth 
 variables.k = 0;                     % 1 or not 1 (Is upcast data processed)
 variables.thhold = 2;              % need to specify the number (2)
-variables.direction = 'up';        % up or down
+variables.direction = 'up';        % up or down, up or down facing adcp?
 variables.sail_corr = 1;           % Correct for horizontal motion of the wirewalker? yes = 1, no = 0
-variables.z_unit = [-1/sqrt(2)*sind(0),-1/sqrt(2)*sind(0),cosd(0)]; % Unit vector of Nortek z-axis relitive to wirewalker z-axis
+variables.z_unit = [0,0,1]; % [-1/sqrt(2)*sind(22.5),-1/sqrt(2)*sind(22.5),cosd(22.5)]; % Unit vector of Nortek z-axis relative to wirewalker z-axis
 
-variables.HRturb = 1;            % Process HR mode data for turbulence? yes = 1, no = 0
+variables.HRturb = 0;            % Process HR mode data for turbulence? yes = 1, no = 0
 
 if variables.HRturb == 1
-    variables.HRbeams = [5];  % Beams with HR mode enabled
+    variables.HRbeams = [1,2,3,4];  % Beams with HR mode enabled
     variables.HRblockdis = 0.1;     % blocking distance with HR mode
-    variables.HRcellsize = 0.04;    % cell size for HR mesurments
-    variables.HRboxsize = 100*variables.HRcellsize; % Depth resolution of final turbulence estimates
+    variables.HRcellsize = 0.06;    % cell size for HR measurements 
+    variables.HRboxsize = 50*variables.HRcellsize; % Depth resolution of final turbulence estimates
 end
 
 %% sort files (slow!)
@@ -90,7 +96,6 @@ for q = 1:variables.NUM_combining_files:length(dd0)
 end
 disp('identify profiles: finished')
 
-
 %% combine cut-off profiles
 % there may be some profiles (specifically the first profile or last profile in a group)
 % with first half in the previous group and second half in the current group. 
@@ -103,7 +108,10 @@ disp('combining: finished')
 %% WWvel analysis
 % here the motion correction and box averaging are performed
 
-splitfiles = 50;splitnum=1;
+WWmeta.dd0 = dd0;
+dd0 = dd0(~startsWith({dd0.name}, '._')); % Added by Caeli Griffin to remove files that start with '._'.
+
+splitfiles = 25;splitnum=1;
 numfiles = ceil(length(WWmeta.dd0)/variables.NUM_combining_files);
 
 while splitfiles*(splitnum-1)<numfiles
@@ -131,7 +139,7 @@ while splitfiles*(splitnum-1)<numfiles
 
     ADCP.Notes = '';
 
-    save([WWmeta.gridpath,WWmeta.name_aqd,'_' num2str(splitnum) '_update.mat'],'ADCP');  % save result
+    save([WWmeta.gridpath,WWmeta.name_aqd,'_' num2str(splitnum) '.mat'],'ADCP');  % save result
 
     if variables.HRturb==1
         turb = WWturb_upward(WWmeta,variables,splitfiles,splitnum);
@@ -142,7 +150,7 @@ while splitfiles*(splitnum-1)<numfiles
 end
 
 %% take a quick look at the result
-plot_result_adcp(WWmeta,Vel)
+% plot_result_adcp(WWmeta,Vel)
 
 
 
