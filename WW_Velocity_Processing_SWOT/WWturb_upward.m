@@ -289,6 +289,7 @@ for q = 1:length(inds)
 end
 
 turb.z = transpose(bin_centers);
+turb.z_struct = transpose(z_grid_dec);  % depth grid for the structure-function estimates (ep_struct/A_struct/N_struct/struct_fun)
 turb.k = transpose(ks);
 turb.r = transpose(range_sub);
 turb.beam_number = permute(HRbeams,[1,3,2]);
