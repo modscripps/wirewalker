@@ -211,6 +211,33 @@ sensor value: `Burst_WaterTemperature`, `Burst_Temperature`, `Burst_Heading`,
 > Bins with fewer than the minimum valid samples are left `NaN` (velocity
 > requires >10 good samples per bin).
 
+#### Sail (wire-drift) correction — `velE_corr` / `velN_corr`
+
+*Contributed by **Caeli Griffin**.* Enabled with `variables.sail_corr = 1`,
+implemented in `WWvel_upward.m`.
+
+As the Wirewalker climbs the wire it does not rise straight up: the package
+leans ("sails") and translates horizontally, so the ADCP frame itself is moving
+through the water. That platform motion aliases directly into the measured
+horizontal water velocity. The sail correction estimates and removes it:
+
+1. **Rise rate** — differentiate pressure to get the vertical speed
+   `dp/dt`, then smooth it (Gaussian, ~24 samples) to suppress wave jitter.
+2. **Package tilt** — rotate the instrument's body z-axis (`variables.z_unit`)
+   into ENU using the measured pitch/roll/heading (`XYZ2ENU`), giving the
+   horizontal (`b_h`) and vertical (`b_z`) components of the tilt unit vector.
+3. **Horizontal drift speed** — geometry gives the horizontal translation rate
+   from the climb: `v_h = (dp/dt) · b_h / b_z`, decomposed into East/North
+   components `v_x`, `v_y` along the lean direction.
+4. **Apply** — add the drift back to the ENU velocity:
+   `velE_corr = velE + v_x`, `velN_corr = velN + v_y`.
+
+The uncorrected `velE`/`velN` are retained alongside, so you can compare. The
+correction grows with rise rate and tilt, so it matters most on fast, leaning
+casts. `variables.z_unit` must describe how the Nortek z-axis is mounted
+relative to the Wirewalker z-axis (e.g. a 22.5°-tilted head:
+`[-1/sqrt(2)*sind(22.5), -1/sqrt(2)*sind(22.5), cosd(22.5)]`).
+
 ---
 
 ### 6b. Turbulence product — `<name>_<n>_HR_Turbulence.mat` → struct `turb`
@@ -286,3 +313,17 @@ file-range at the top) to get one continuous `ADCP` record.
   of this driver.
 - See the bundled manuals for more detail: `Manual for WW_ADCP.docx`,
   `VelocityDataReadMe.docx`, `NortekTurbulenceDataReadMe.docx`.
+
+---
+
+## 8. Authorship & credits
+
+- **Core velocity processing** (file sorting, merging, cast splitting,
+  beam→ENU, IMU motion correction, box-averaging) — **Bofu Zheng**, **Arnaud
+  Le Boyer**, and **Drew Lucas**.
+- **Turbulence processing** (`WWturb_upward.m`; HR-mode dissipation ε via
+  structure-function and Kolmogorov spectral fits) — **Devon Northcott**.
+- **Sail (wire-drift) correction** (`sail_corr`; horizontal-motion removal in
+  `WWvel_upward.m`, see §6a) — **Caeli Griffin**.
+
+Please credit the appropriate authors when using or adapting these components.
