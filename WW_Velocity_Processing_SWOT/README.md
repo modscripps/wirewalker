@@ -320,10 +320,27 @@ file-range at the top) to get one continuous `ADCP` record.
 
 - **Core velocity processing** (file sorting, merging, cast splitting,
   beam→ENU, IMU motion correction, box-averaging) — **Bofu Zheng**, **Arnaud
-  Le Boyer**, and **Drew Lucas**.
+  Le Boyer**, and **Drew Lucas**. Method described in **Zheng et al. (2022)**
+  [[1]](#references).
 - **Turbulence processing** (`WWturb_upward.m`; HR-mode dissipation ε via
   structure-function and Kolmogorov spectral fits) — **Devon Northcott**.
+  Method described in **Northcott et al. (2026)** [[2]](#references).
 - **Sail (wire-drift) correction** (`sail_corr`; horizontal-motion removal in
   `WWvel_upward.m`, see §6a) — **Caeli Griffin**.
 
-Please credit the appropriate authors when using or adapting these components.
+Please credit the appropriate authors and cite the references below when using or
+adapting these components.
+
+---
+
+## References
+
+1. Zheng, B., A. J. Lucas, R. Pinkel, and A. Le Boyer, 2022: Fine-Scale Velocity
+   Measurement on the Wirewalker Wave-Powered Profiler. *Journal of Atmospheric
+   and Oceanic Technology*, **39**(2), 133–147,
+   <https://doi.org/10.1175/JTECH-D-21-0048.1>.
+
+2. Northcott, D., A. Le Boyer, J. MacKinnon, M. H. Alford, and A. J. Lucas, 2026:
+   Observations of the Internal Wave to Turbulence Cascade. *Journal of Physical
+   Oceanography*, **56**(4), 839–853,
+   <https://doi.org/10.1175/JPO-D-25-0114.1>.
